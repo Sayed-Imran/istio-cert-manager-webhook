@@ -25,10 +25,13 @@ class CertificateHandler:
                 issuer_kind=self.certificate_data["issuer_kind"],
                 secret_name=gateway_spec["servers"][0]["tls"]["credentialName"]
             )
-            self.kubernetes_utility.create_certificate(certificate, owner_reference)
-        
+            if self.kubernetes_utility.get_certificate(certificate.name, certificate.namespace):
+                self.kubernetes_utility.update_certificate(certificate, owner_reference)
+            else:
+                self.kubernetes_utility.create_certificate(certificate, owner_reference)
         except Exception as e:
             raise e
+
     def _handle_annotations(self, gateway_annotations: dict):
         issuer = gateway_annotations.get("cert-manager.io/issuer")
         cluster_issuer = gateway_annotations.get("cert-manager.io/cluster-issuer")

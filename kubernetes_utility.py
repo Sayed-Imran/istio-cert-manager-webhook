@@ -10,6 +10,15 @@ class KubernetesUtility:
         self.custom_object_version = 'v1'
         self.custom_object_plural = 'certificates'
 
+    def get_certificate(self, name, namespace):
+        return self.client.get_namespaced_custom_object(
+            self.custom_object_group,
+            self.custom_object_version,
+            namespace,
+            self.custom_object_plural,
+            name
+        ) or None
+
     def create_certificate(self, certificate: CertificateSchema, owner_reference: OwnerReferenceSchema):
         certificate = {
             "apiVersion": f"{self.custom_object_group}/{self.custom_object_version}",
@@ -41,3 +50,37 @@ class KubernetesUtility:
             self.custom_object_plural,
             certificate
         )
+
+    def update_certificate(self, certificate: CertificateSchema, owner_reference: OwnerReferenceSchema):
+        certificate = {
+            "apiVersion": f"{self.custom_object_group}/{self.custom_object_version}",
+            "kind": "Certificate",
+            "metadata": {
+                "name": certificate.name,
+                "ownerReferences": [owner_reference.model_dump()]
+            },
+            "spec": {
+                "secretName": certificate.secret_name,
+                "duration": certificate.duration,
+                "renewBefore": certificate.renew_before,
+                "dnsNames": certificate.dns_names,
+                "usages" : [
+                    "digital signature",
+                    "key encipherment",
+                ],
+                "issuerRef": {
+                    "name": certificate.issuer_name,
+                    "kind": certificate.issuer_kind,
+                    "group": f"{self.custom_object_group}/{self.custom_object_version}"
+                }
+            }
+        }
+        self.client.replace_namespaced_custom_object(
+            self.custom_object_group,
+            self.custom_object_version,
+            certificate.namespace,
+            self.custom_object_plural,
+            certificate.name,
+            certificate
+        )
+        
