@@ -30,8 +30,10 @@ class CertificateHandler:
             )
             if self.kubernetes_utility.get_certificate(certificate.name, certificate.namespace):
                 self.kubernetes_utility.update_certificate(certificate, owner_reference)
+                logging.info(f"Certificate {certificate.name} already exists, updating it")
             else:
                 self.kubernetes_utility.create_certificate(certificate, owner_reference)
+                logging.info(f"Certificate {certificate.name} created successfully")
         except AnnotationDoesNotExist as e:
             logging.info(f"Annotation does not exist, hence skipping certificate creation")
         except Exception as e:
