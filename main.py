@@ -3,6 +3,7 @@ from fastapi.responses import JSONResponse
 from fastapi import Request
 import logging
 from handler import CertificateHandler
+from schemas import ControllerResponseSchema, AdmissionResponseSchema
 
 
 app = FastAPI()
@@ -17,17 +18,17 @@ async def validate(request: Request):
         data = await request.json()
         certificate_handler.create_certificate(data["request"]["object"])
         logging.info(f"Validating data: {data}")
-        response =  {
-            "apiVersion": "admission.k8s.io/v1",
-             "kind": "AdmissionReview",
-            "response" : {
-                "allowed": allowed,
-                "uid": data["request"]["uid"],
-                "status": {
+        response =  ControllerResponseSchema(
+            apiVersion="admission.k8s.io/v1",
+            kind="AdmissionReview",
+            response= AdmissionResponseSchema(
+                uid=data["request"]["uid"],
+                allowed=allowed,
+                status={
                     "message": "Validation passed",
                 }
-            }
-        }
+            )
+        )
         logging.info(f"Response: {response}")
         return response
 
