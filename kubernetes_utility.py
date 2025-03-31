@@ -1,4 +1,5 @@
 from kubernetes import config, client
+from kubernetes.client.exceptions import ApiException
 from schemas import CertificateSchema, OwnerReferenceSchema
 
 
@@ -11,16 +12,21 @@ class KubernetesUtility:
         self.custom_object_plural = 'certificates'
 
     def get_certificate(self, name, namespace):
-        return self.client.get_namespaced_custom_object(
-            self.custom_object_group,
-            self.custom_object_version,
-            namespace,
-            self.custom_object_plural,
-            name
-        ) or None
+        try:
+            return self.client.get_namespaced_custom_object(
+                self.custom_object_group,
+                self.custom_object_version,
+                namespace,
+                self.custom_object_plural,
+                name
+            )
+        except ApiException as e:
+            if e.status == 404:
+                return None
+            raise
 
     def create_certificate(self, certificate: CertificateSchema, owner_reference: OwnerReferenceSchema):
-        certificate = {
+        certificate_body = {
             "apiVersion": f"{self.custom_object_group}/{self.custom_object_version}",
             "kind": "Certificate",
             "metadata": {
@@ -39,7 +45,7 @@ class KubernetesUtility:
                 "issuerRef": {
                     "name": certificate.issuer_name,
                     "kind": certificate.issuer_kind,
-                    "group": f"{self.custom_object_group}/{self.custom_object_version}"
+                    "group": f"{self.custom_object_group}"
                 }
             }
         }
@@ -48,7 +54,7 @@ class KubernetesUtility:
             self.custom_object_version,
             certificate.namespace,
             self.custom_object_plural,
-            certificate
+            certificate_body
         )
 
     def update_certificate(self, certificate: CertificateSchema, owner_reference: OwnerReferenceSchema):
