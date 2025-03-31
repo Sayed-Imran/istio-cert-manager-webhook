@@ -1,5 +1,8 @@
 from kubernetes_utility import KubernetesUtility
 from schemas import CertificateSchema, OwnerReferenceSchema
+from errors import AnnotationDoesNotExist
+from config import CertificateConfig
+import logging
 
 class CertificateHandler:
     def __init__(self):
@@ -29,6 +32,8 @@ class CertificateHandler:
                 self.kubernetes_utility.update_certificate(certificate, owner_reference)
             else:
                 self.kubernetes_utility.create_certificate(certificate, owner_reference)
+        except AnnotationDoesNotExist as e:
+            logging.info(f"Annotation does not exist, hence skipping certificate creation")
         except Exception as e:
             raise e
 
@@ -43,6 +48,6 @@ class CertificateHandler:
             self.certificate_data["issuer_name"] = cluster_issuer
             self.certificate_data["issuer_kind"] = "ClusterIssuer"
         else:
-            raise ValueError("Gateway must have either 'cert-manager.io/issuer' or 'cert-manager.io/cluster-issuer' annotation")
-        self.certificate_data["duration"] = gateway_annotations.get("cert-manager.io/duration", "4320h")
-        self.certificate_data["renew_before"] = gateway_annotations.get("cert-manager.io/renew-before", "360h")
+            raise AnnotationDoesNotExist("Gateway must have either 'cert-manager.io/issuer' or 'cert-manager.io/cluster-issuer' annotation")
+        self.certificate_data["duration"] = gateway_annotations.get("cert-manager.io/duration", CertificateConfig.duration)
+        self.certificate_data["renew_before"] = gateway_annotations.get("cert-manager.io/renew-before", CertificateConfig.renew_before)
