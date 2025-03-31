@@ -2,3 +2,10 @@ certs/
 manifests/
 __pycache__/
 .git/
+*.json
+.env
+Dockerfile
+LICENSE
+*.md
+*.yaml
+*.yml
