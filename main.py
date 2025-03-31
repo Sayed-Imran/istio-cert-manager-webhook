@@ -17,7 +17,6 @@ async def validate(request: Request):
         certificate_handler = CertificateHandler()
         data = await request.json()
         certificate_handler.create_certificate(data["request"]["object"])
-        logging.info(f"Validating data: {data}")
         response =  ControllerResponseSchema(
             apiVersion="admission.k8s.io/v1",
             kind="AdmissionReview",
