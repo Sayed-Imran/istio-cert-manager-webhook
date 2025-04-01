@@ -1,4 +1,5 @@
 from kubernetes_utility import KubernetesUtility
+from fastapi import Request
 from schemas import CertificateSchema, OwnerReferenceSchema
 from errors import AnnotationDoesNotExist
 from config import CertificateConfig
@@ -32,7 +33,8 @@ class CertificateHandler:
                 self.kubernetes_utility.update_certificate(certificate, owner_reference)
                 logging.info(f"Certificate {certificate.name} already exists, updating it")
             else:
-                self.kubernetes_utility.create_certificate(certificate, owner_reference)
+                resp = self.kubernetes_utility.create_certificate(certificate, owner_reference)
+                logging.info(resp)
                 logging.info(f"Certificate {certificate.name} created successfully")
         except AnnotationDoesNotExist as e:
             logging.info(f"Annotation does not exist, hence skipping certificate creation")

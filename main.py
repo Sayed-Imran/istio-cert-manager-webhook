@@ -1,4 +1,4 @@
-from fastapi import FastAPI
+from fastapi import FastAPI, BackgroundTasks
 from fastapi.responses import JSONResponse
 from fastapi import Request
 import logging
@@ -11,12 +11,15 @@ logging.basicConfig(level=logging.INFO)
 
 
 @app.post("/validate")
-async def validate(request: Request):
+async def validate(request: Request, bg_tasks: BackgroundTasks):
     allowed = True
     try:
         certificate_handler = CertificateHandler()
         data = await request.json()
-        certificate_handler.create_certificate(data["request"]["object"])
+        bg_tasks.add_task(
+            certificate_handler.create_certificate,
+            data["request"]["object"]
+        )
         response =  ControllerResponseSchema(
             apiVersion="admission.k8s.io/v1",
             kind="AdmissionReview",
