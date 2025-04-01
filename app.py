@@ -1,5 +1,11 @@
 import uvicorn
 import argparse
+import logging
+
+logging.basicConfig(
+    level=logging.INFO,
+    format='%(levelname)s:     %(message)s'
+)
 
 def main():
     parser = argparse.ArgumentParser()
@@ -27,9 +33,9 @@ def main():
     if args.certfile and args.keyfile:
         config["ssl_certfile"] = args.certfile
         config["ssl_keyfile"] = args.keyfile
-        print(f"Running with TLS using certificate: {args.certfile}")
+        logging.info(f"Running with TLS using certificate: {args.certfile}")
     else:
-        print("Running without TLS")
+        logging.warning("Running without TLS")
 
     uvicorn.run(**config)
 

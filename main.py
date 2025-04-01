@@ -7,7 +7,6 @@ from schemas import ControllerResponseSchema, AdmissionResponseSchema
 
 
 app = FastAPI()
-logging.basicConfig(level=logging.INFO)
 
 
 @app.post("/validate")
