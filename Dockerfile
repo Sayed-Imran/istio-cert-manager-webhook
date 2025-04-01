@@ -8,4 +8,4 @@ RUN pip install -r requirements.txt --no-cache-dir
 
 COPY . /app
 
-ENTRYPOINT ["python", "app.py"]
+ENTRYPOINT ["python", "app.py", "--certfile", "/certs/tls.crt", "--keyfile", "/certs/tls.key", "--port", "443"]
