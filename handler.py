@@ -1,5 +1,4 @@
 from kubernetes_utility import KubernetesUtility
-from fastapi import Request
 from schemas import CertificateSchema, OwnerReferenceSchema
 from errors import AnnotationDoesNotExist
 from config import CertificateConfig
