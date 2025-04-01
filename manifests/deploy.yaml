@@ -1,0 +1,63 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: istio-cert-admission-webhook
+  namespace: istio-system
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: istio-cert-admission-webhook
+  template:
+    metadata:
+      labels:
+        app: istio-cert-admission-webhook
+    spec:
+      containers:
+      - image: sayedimran/istio-cert-admission-webhook:v1.0.0
+        name: istio-cert-admission-webhook
+        ports:
+        - containerPort: 443
+          protocol: TCP
+        resources:
+          limits:
+            cpu: "1"
+            memory: 1Gi
+          requests:
+            cpu: 100m
+            memory: 100Mi
+        volumeMounts:
+        - mountPath: /certs
+          name: webhook-certs
+          readOnly: true
+      nodeSelector:
+        kubernetes.io/arch: amd64
+      restartPolicy: Always
+      schedulerName: default-scheduler
+      serviceAccount: istio-cert-admission-webhook
+      terminationGracePeriodSeconds: 30
+      volumes:
+      - name: webhook-certs
+        secret:
+          defaultMode: 420
+          secretName: istio-webhook-tls
+
+---
+
+apiVersion: v1
+kind: Service
+metadata:
+  name: istio-cert-admission-webhook
+  namespace: istio-system
+  labels:
+    app: istio-cert-admission-webhook
+spec:
+  ports:
+  - name: https
+    port: 443
+    protocol: TCP
+    targetPort: 443
+  selector:
+    app: istio-cert-admission-webhook
+  type: ClusterIP
+
