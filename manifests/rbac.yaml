@@ -18,6 +18,12 @@ rules:
   - create
   - update
   - get
+- apiGroups:
+  - cert-manager.io
+  resources:
+  - gateways
+  verbs:
+  - get
 ---
 
 apiVersion: rbac.authorization.k8s.io/v1
