@@ -11,20 +11,16 @@ app = FastAPI()
 
 @app.post("/validate")
 async def validate(request: Request, bg_tasks: BackgroundTasks):
-    allowed = True
     try:
-        certificate_handler = CertificateHandler()
         data = await request.json()
+        certificate_handler = CertificateHandler(data["request"]["object"])
         bg_tasks.add_task(
-            certificate_handler.create_certificate,
-            data["request"]["object"]
+            certificate_handler.create_certificate
         )
         response =  ControllerResponseSchema(
-            apiVersion="admission.k8s.io/v1",
-            kind="AdmissionReview",
             response= AdmissionResponseSchema(
                 uid=data["request"]["uid"],
-                allowed=allowed,
+                allowed=True,
                 status={
                     "message": "Validation passed",
                 }
@@ -35,13 +31,12 @@ async def validate(request: Request, bg_tasks: BackgroundTasks):
 
     except Exception as e:
         logging.error(f"Error validating data: {e}")
-        allowed = False
-        return JSONResponse(
-            {
-                "allowed": allowed,
-                "uid": data["request"]["uid"],
-                "status": {
-                    "message": "Validation failed",
+        return ControllerResponseSchema(
+            response= AdmissionResponseSchema(
+                uid=data["request"]["uid"],
+                allowed=False,
+                status={
+                    "message": str(e),
                 }
-            }
+            )
         )
