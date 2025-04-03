@@ -1,7 +1,8 @@
 from kubernetes import config, client
 from kubernetes.client.exceptions import ApiException
 from schemas import CertificateSchema, OwnerReferenceSchema
-
+from errors import IssuerDoesnotExist, ClusterIssuerDoesnotExist
+import logging
 
 class KubernetesUtility:
     def __init__(self):
@@ -45,7 +46,7 @@ class KubernetesUtility:
                 "issuerRef": {
                     "name": certificate.issuer_name,
                     "kind": certificate.issuer_kind,
-                    "group": f"{self.custom_object_group}"
+                    "group": self.custom_object_group
                 }
             }
         }
@@ -58,7 +59,7 @@ class KubernetesUtility:
         )
 
     def update_certificate(self, certificate: CertificateSchema, owner_reference: OwnerReferenceSchema):
-        certificate = {
+        certificate_data = {
             "apiVersion": f"{self.custom_object_group}/{self.custom_object_version}",
             "kind": "Certificate",
             "metadata": {
@@ -77,7 +78,7 @@ class KubernetesUtility:
                 "issuerRef": {
                     "name": certificate.issuer_name,
                     "kind": certificate.issuer_kind,
-                    "group": f"{self.custom_object_group}/{self.custom_object_version}"
+                    "group": self.custom_object_group
                 }
             }
         }
@@ -87,6 +88,32 @@ class KubernetesUtility:
             certificate.namespace,
             self.custom_object_plural,
             certificate.name,
-            certificate
+            certificate_data
         )
-        
+
+    def get_issuer(self, name, namespace):
+        try:
+            return self.client.get_namespaced_custom_object(
+                self.custom_object_group,
+                self.custom_object_version,
+                namespace,
+                'issuers',
+                name
+            )
+        except ApiException as e:
+            logging.error(f"Error fetching issuer: {e}")
+            if e.status == 404:
+                raise IssuerDoesnotExist(f"Issuer {name} does not exist in namespace {namespace}")
+
+    def get_cluster_issuer(self, name):
+        try:
+            return self.client.get_cluster_custom_object(
+                self.custom_object_group,
+                self.custom_object_version,
+                'clusterissuers',
+                name
+            )
+        except ApiException as e:
+            logging.error(f"Error fetching cluster issuer: {e}")
+            if e.status == 404:
+                raise ClusterIssuerDoesnotExist(f"ClusterIssuer {name} does not exist")
