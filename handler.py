@@ -6,15 +6,12 @@ import logging
 
 class CertificateHandler:
     def __init__(self, request_object: dict):
-        try:
-            self.request_object = request_object
-            self.kubernetes_utility = KubernetesUtility()
-            self.certificate_data = {}
-            self._handle_annotations(request_object["metadata"]["annotations"])
-        except AnnotationDoesNotExist as e:
-            logging.info(f"Annotation does not exist, hence skipping certificate creation")
-        except Exception as e:
-            raise e
+
+        self.request_object = request_object
+        self.kubernetes_utility = KubernetesUtility()
+        self.certificate_data = {}
+        self._handle_annotations(request_object["metadata"]["annotations"])
+
 
     def create_certificate(self):
         try:

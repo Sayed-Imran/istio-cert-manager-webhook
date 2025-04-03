@@ -2,6 +2,7 @@ from fastapi import FastAPI, BackgroundTasks
 from fastapi.responses import JSONResponse
 from fastapi import Request
 import logging
+from errors import AnnotationDoesNotExist
 from handler import CertificateHandler
 from schemas import ControllerResponseSchema, AdmissionResponseSchema
 
@@ -28,6 +29,18 @@ async def validate(request: Request, bg_tasks: BackgroundTasks):
         )
         logging.info(f"Response: {response}")
         return response
+
+    except AnnotationDoesNotExist as e:
+        logging.info(f"Annotation does not exist, hence skipping certificate creation")
+        return ControllerResponseSchema(
+            response= AdmissionResponseSchema(
+                uid=data["request"]["uid"],
+                allowed=True,
+                status={
+                    "message": "Annotation does not exist, skipping certificate creation",
+                }
+            )
+        )
 
     except Exception as e:
         logging.error(f"Error validating data: {e}")
