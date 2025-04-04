@@ -1,5 +1,6 @@
 from pydantic import BaseModel
-from config import CertificateConfig
+
+
 
 class CertificateSchema(BaseModel):
     namespace: str
@@ -11,6 +12,7 @@ class CertificateSchema(BaseModel):
     duration: str
     renew_before: str
 
+
 class OwnerReferenceSchema(BaseModel):
     apiVersion: str = "networking.istio.io/v1"
     kind: str = "Gateway"
@@ -19,12 +21,15 @@ class OwnerReferenceSchema(BaseModel):
     controller: bool = True
     blockOwnerDeletion: bool = True
 
+
 class AdmissionResponseSchema(BaseModel):
     allowed: bool
     uid: str
     status: dict = {
         "message": "Validation passed",
     }
+
+
 class ControllerResponseSchema(BaseModel):
     apiVersion: str = "admission.k8s.io/v1"
     kind: str = "AdmissionReview"
