@@ -1,0 +1,27 @@
+apiVersion: admissionregistration.k8s.io/v1
+kind: ValidatingWebhookConfiguration
+metadata:
+  name: istio-cert-admission-webhook
+webhooks:
+- admissionReviewVersions:
+  - v1
+  clientConfig:
+    caBundle: <base64-encoded-ca-bundle>
+    service:
+      name: gateway-admission-webhook
+      namespace: istio-system
+      path: /validate
+      port: 443
+  failurePolicy: Fail
+  name: webhook.istio-system.cert
+  rules:
+  - apiGroups:
+    - networking.istio.io
+    apiVersions:
+    - v1
+    operations:
+    - CREATE
+    - UPDATE
+    resources:
+    - gateways
+    scope: Namespaced
